@@ -29,6 +29,14 @@ iffy.track([
 
 If you want to set the duration of the cookies so that they delete themselves from the user's browswer sooner than the default, pass an object where the keys are the cookie names and the values are the duration (in days) that the cookie should persist in the user's browser.
 
+```
+   var couldTrackWithDuration = iffy.track({
+       trackerFour: 1,
+       trackerFive: 2,
+       trackerSix: 3,
+   });
+```
+
 ## Tracking Location
 
 You can also use iffy to track whether or not a user is from a specfic city, state, or country. You can use the automatic template tags
@@ -41,6 +49,29 @@ and the browser will request to use the user's location. If the user accepts, th
 
 ```<div class="iffy-country-us">...</div>```
 
+
+Note that since Iffy relies on using jQuery selectors, the iffy ID or class doesn't have to be applied to a div element. It can be applied to any HTML element, since maybe it makes sense to conditionally display a header, as in the following example
+
+```<h1 class="iffy-headercookie">...</h1> ```
+
+
+## Conditionally Displaying Content W/Boolean Logic
+
+### Boolean AND
+
+```
+<div class="iffy-conditionone">
+       <div class="iffy-conditiontwo">...</div>
+</div>
+```
+
+### Boolean OR
+
+```
+<div class="iffy-checkone iffy-checktwo"> 
+...
+</div>
+```
 
 ## Diving in With Javascript Conditionals
 
