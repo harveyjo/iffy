@@ -27,10 +27,11 @@ You can also use iffy to track whether or not a user is from a specfic city, sta
 and the browser will request to use the user's location. If the user accepts, the template within the div tags will render the content inbetween the div tags if the user is from the given state. Similarly, you can do
 
 ```<div class="iffy-city-corvallis">...</div>```
+
 ```<div class="iffy-country-us">...</div>```
 
 
-## Getting dirty with Javascript conditionals
+## Diving in With Javascript Conditionals
 
 You can also directly request location access from the user and process logic based on the result of the request. For example, the following snippet of code displays several console.log statements if the user allows location access and is from the state of Oregon.
 
