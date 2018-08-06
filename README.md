@@ -18,6 +18,17 @@ This will set a cookie in the user's browser that determines that the 'cookieNam
 
 In which case the content between the div tags will only be displayed if the user has visited the 'democookie' page.
 
+You can also set multiple cookies for a single page or in a single call using the following syntax:
+```
+iffy.track([
+       'trackerOne',
+       'trackerTwo',
+       'trackerThree'
+ ]);
+```
+
+If you want to set the duration of the cookies so that they delete themselves from the user's browswer sooner than the default, pass an object where the keys are the cookie names and the values are the duration (in days) that the cookie should persist in the user's browser.
+
 ## Tracking Location
 
 You can also use iffy to track whether or not a user is from a specfic city, state, or country. You can use the automatic template tags
