@@ -87,5 +87,97 @@ You can also directly request location access from the user and process logic ba
       });
 ```
 
+# Examples Use Cases
+
+## Based on a previous visit to one of the 12 targeted state page (for example, a visit to Washington page), display dynamic content on the homepage.
+
+Suppose you have 12 targeted landing pages for twelve different states. If a user visits one of those pages and then leaves, the page should store the state that they were on. Then, that data should be used to display a welcome graphic on the homepage the next time the user visits the homepage. Neither of these two things should before waiting 24 hours. The cookies should expire in 60 days. This entire behavior loop should only happen once.
+
+### Step 1: Let the 12 pages know that they should be tracking views
+
+On each of the twelve pages include the following code to let iffy know that it's tracking something for you.
+
+```
+  <script type="text/javascript">
+    var stateName = 'California' // This is either hardcoded or parsed from the context in some form
+
+    iffy.track({
+      thatUserIsFromState: {
+        state: stateName, // the key we exemplify for this use case, this can be named anything
+        arbitraryKey: arbitraryValue, // add unlimited keys and values for templating 
+        delay: 1440 // set an optional delay in minutes
+        loop: false // @TODO: Just don't delete the cookie and change a key for whether or not the content has been displayed already? 
+
+        // hasBeenDisplayed: false // 
+        ...,
+      }
+    })
+
+  </script>
+```
+
+The first time a user visits one of these pages a cookie with the name "userIsFromTargetState" with the value of the state name will be stored in his/her browsers. We use a generic name like "userIsFromTargetState" in order to impose the constraint that only the latest page visit to one of the 12 pages should be the trigger of the dynamic functionality, since a user visiting one of these pages and then another will cause the cookie to be written over with the state name of the second page.
+
+### Step 2: Program the graphic to conditionally display on the target page
+
+If you are using bootstrap, as an example you could create a block-level call to action that works on this data.
+
+```
+  <button type="button" class="iffy-userIsFromTargetState btn btn-primary btn-lg btn-block">
+    Welcome back! Did you know 3/4 of {{userIsFromTargetState.statename}} students received scholarships and/or gift aid this    year?  
+  </button>
+```
+
+## Redirect The user to state-specific landing page based on whether they are from that page
+
+```
+<script type="text/javascript">
+       // This should only happen once, so track that it happened the first time and that this behavior shouldn't repeat.
+       
+
+
+       iffy.hasGeolocationAccess().then(function(location) {
+          iffy.route(location.state, {
+            'stateName': 'redirectLink'
+          });
+       });
+</script>
+
+
+// What location has available to you, and the face that this is essentially a switch statement
+```
+
+a.   Graphic displayed in block above content and below main menu, on Admissions homepage only.  Something small like a bubble or elongated button.
+                                                               i.      
+b.       Modal
+                                                               i.      We’re using Modal’s on a few pages, like Apply As a First-Year Student button on the Apply Page.
+    ii.      Delivery
+    1.       Wait 24 hours before displaying
+2.       Expire after 60 days
+3.       Opt-out that makes sure it isn’t displayed again
+                                                           iii.      Content
+1.       Call to action for Explore OSU event:  https://admissions.oregonstate.edu/explore-osu
+2.       Links
+a.       https://scholarships.oregonstate.edu
+b.       https://admissions.oregonstate.edu/scholarshipcalculator
+c.       https://admissions.oregonstate.edu/find-your-major
+d.       https://visitosu.oregonstate.edu
+2.       Location Trigger on homepage
+a.       If location is in one of the 12 targeted states, redirect to state landing page
+b.       Redirect only once
+c.       Because this is triggered by opt-in with location data, is there a way to collect this information provided?
+3.       If visiting the Transfer landing page and location in Portland Metro area
+a.       Modal
+                                                               i.      Deliver one time only
+                                                             ii.      Content
+1.       Did you know?  OSU is offering Portland Hybrid Programs.  Learn More:  https://portland.oregonstate.edu
+2.       Degree partnership Programs (DPP)
+4.       If visiting Transfer page in Oregon, not in Portland
+a.       Similar to above but just DPP content
+5.       Next steps – can we drop cookies based on specific link clicks.
+
+
+
+
 
 

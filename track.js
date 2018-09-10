@@ -5,6 +5,7 @@ var iffy = {
     hasJquery: false,
     hasCookieWrapper: false,
     callQueue: [],
+    trackers: [],
     hasGeolocation: false,
     elements: null,
     address: {
@@ -86,22 +87,17 @@ iffy.useLocationTag = function(locationType, locationName) {
          });
 }
 
-iffy.parseTemplates = (function() {
+iffy.parseTemplates = function() {
     // Break apart city, state, and country attributes
-    var interval = setInterval(function() {
+    
         console.log("Running the interval");
         console.log(iffy.elements);
-        if(iffy.elements !== null) {
             console.log("ACTUALLY IN THE IF STATEMENT");
             jQuery.each(iffy.elements, function(key, value) {
                 console.log("And as we break these things apart:");
           
                 var id = jQuery(value).attr('id');
                 var classNames = jQuery(value).attr('class');
-
-                if(id) {
-    
-                }
 
                 if(classNames) {
                     var classNamesArr = classNames.split(" ");
@@ -119,7 +115,7 @@ iffy.parseTemplates = (function() {
                                 // If the length is three, check to see if it is a location type
 
                                 // If the length is 
-                                if(splitClassName.length === 3) {
+                                if(splitClassName.length === 3) { // iffy-state-business
                                     if(splitClassName[1] === 'city'  ||
                                        splitClassName[1] === 'state' ||
                                        splitClassName[1] === 'country' 
@@ -130,8 +126,55 @@ iffy.parseTemplates = (function() {
                                        
                                     }
 
-                                } else if(splitClassName.length === 2) {
+                                } else if(splitClassName.length === 2) { // iffy-arbitrary
+                                    console.log("Trackers array is:");
+                                    console.log(iffy.trackers);
 
+                                    if (iffy.trackers.includes(splitClassName[1])) {
+                                        // Parse the inner html of the template and do a replacement of the tags
+                                        
+                                        var result = jQuery(value).children().contents()
+                                            .filter(function () {
+                                                return this.nodeType === 3;
+                                            });
+                                            console.log("Immediate");
+                                            console.log(result);
+
+                                            jQuery.each(result, function(index, resultElm) {
+                                                var text = jQuery(resultElm).text()
+                                                var startIndex = text.lastIndexOf("{{") + 2;
+                                                var endIndex = text.lastIndexOf("}}");
+                                                var tag = text.substring(startIndex, endIndex);
+                                                
+                                                if(tag !== '') {
+                                                    // Split the string by dot
+                                                    console.log("SPLIT TAGS:");
+                                                    console.log(tag.split('.')[0]);
+                                                    console.log(tag.split('.')[1]);
+
+                                                    const cookieJson = JSON.parse(Cookies.get(tag.split('.')[0]));
+                                                    console.log(cookieJson[tag.split('.')[1]])
+                                                    console.log("AND HERE");
+                                                    
+                                                    var newText = text.substring(0, startIndex - 2) + cookieJson[tag.split('.')[1]] + text.substring(endIndex, text.length - 2);  
+                                                    jQuery(this).parent().text(newText);
+                                                    console.log(newText.toString());
+
+                                                }
+                                                
+                                            });
+
+                                        console.log("ACTUALLY REACHING THIS STATEMENT");
+                                        console.log(jQuery(value));
+                                        jQuery(value).toggleClass('hidden');
+                                        console.log(jQuery(value));
+
+
+                                        
+
+
+
+                                    }
                                 }
 
                             // Look for the actual statements
@@ -145,11 +188,7 @@ iffy.parseTemplates = (function() {
 
                 // Only use the iffy- id and classnames
             })
-            clearInterval(interval);
-        }
-    }, 100);
-
-})();
+};
 
 iffy.isFrom = function(locationType, location) {
 
@@ -420,11 +459,13 @@ iffy.docIsReady(function() {
 });
 
 iffy.go = function() {
+
     // Jquery Is Loaded
     // Load In Cookie Tracking Dependencies
     iffy.getScript('https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js', function() {
        // Run all functions in the call queue here
 
+       // Run everything that has backed up in the call queue
        iffy.callQueue.map(function(fn) {
             fn();
        });
@@ -432,46 +473,36 @@ iffy.go = function() {
        var interval = setInterval(function() {
         if(iffy.hasJquery) {
             clearInterval(interval);
-           
+
+            // Get the array of stored trackers and push to iffy elements
+            var storedTrackers = JSON.parse(Cookies.get('trackers'));
+
+            if (typeof storedTrackers === 'undefined') {
+                storedTrackers = [];
+            } 
+            else {
+                console.log("Retrieved");
+                console.log(storedTrackers);
+                storedTrackers.map(function(tracker) {
+                    iffy.trackers.push(tracker)
+                });
+            }
+
+            // // Get all of the elements with the appropirate attributes
+            var setOne = jQuery('[class^=iffy]');
+            iffy.elements = jQuery('[id^=iffy]').add(setOne);
+            console.log('SETTING THE ELEMENTS');
 
             jQuery.each(iffy.elements, function(key, value) {
                 jQuery(value).addClass('hidden');
-        
-                var id = jQuery(value).attr('id')
-                var classNames = jQuery(value).attr('class')
-        
-        
-                if(id) {
-        
-                } else if(classNames) {
-                    var splitClassNames = classNames.split(" ");
-                    var templateTagsArr = null;
-                    splitClassNames.map(function(elm) {
-                        if(elm.includes('iffy')) {
-                          templateTagsArr = elm.split('-');  
-                        }
-                    });
-        
-                    if(templateTagsArr.length === 2) {
-                        console.log("Template tags arr");
-                        console.log(templateTagsArr);
-                        console.log(Cookies.get('business'));
-
-                        if(Cookies.get(templateTagsArr[1])) {
-                            jQuery('.iffy-' + templateTagsArr[1]).removeClass('hidden');
-                        }
-
-                    }
-                }
-        
             });
+
+            iffy.parseTemplates()
 
         }
     }, 100);
-    // Get all of the elements with the appropirate attributes
-    var setOne = jQuery('[class^=iffy]');
-    iffy.elements = jQuery('[id^=iffy]').add(setOne);
-    console.log('SETTING THE ELEMENTS');
+
+
 
     
     // AND NOW HIDE THEM ALL.
@@ -494,10 +525,26 @@ iffy.go = function() {
 };
 
 iffy.track = function(stringOrStringsToTrack) {
+    console.log("Tracking something, anything at all");
     var hasSuccess = false;
+
+
+    // If there isn't a trackers object stored as a cookies, create it
+    var storedTrackersRaw = Cookies.get('trackers');
+    var storedTrackersArr = [];
+
+    if (typeof storedTrackersRaw !== 'undefined') {
+        console.log("TRACKERS FROM COOKIES ARE");
+        storedTrackersArr = storedTrackersRaw.split(',');
+    } 
+
+    // Or if there is one, get it
 
     if(typeof stringOrStringsToTrack === 'string') {
         hasSuccess = true;
+        iffy.trackers.push(stringOrStringsToTrack);
+        storedTrackersArr.push(stringOrStringsToTrack);
+
         console.log("Tracking a string for sure.");
 
         iffy.addToCallQueue(function() {
@@ -513,7 +560,8 @@ iffy.track = function(stringOrStringsToTrack) {
         console.log("Tracking an array for sure.");
 
         stringOrStringsToTrack.map(function(elm) {
-            
+            storedTrackersArr.push(elm);
+            iffy.trackers.push(elm);
             Cookies.set(elm, true);
         });
     });
@@ -522,40 +570,32 @@ iffy.track = function(stringOrStringsToTrack) {
     } else if(typeof stringOrStringsToTrack === 'object') {
         iffy.addToCallQueue(function() {
         hasSuccess = true;
-        console.log("Now we have an object type.");
+
+        
+
+        console.log("Detected an object and stringifying the cookie");
+            console.log(stringOrStringsToTrack);
+
         // We expect each to to be a number
         Object.keys(stringOrStringsToTrack).map(function(key) {
-            if(isNaN(stringOrStringsToTrack[key])) {
-                console.error('Tracking Duration Should Be An Integer For Number of Hours...Key: ' + key);
-                hasSuccess = false;
-            } else {
-                console.log("KEY IS****");
-                console.log(key);
-                console.log(stringOrStringsToTrack[key]);
-                Cookies.set(key, true, { expires: stringOrStringsToTrack[key] });
-            }
+            storedTrackersArr.push(key);
+            console.log(key);
+            console.log(storedTrackersArr);
+            iffy.trackers.push(key);
+            Cookies.set(key, JSON.stringify(stringOrStringsToTrack[key]), { expires: 1800});
         });
     });
     }
     else {
         console.error('Unsupported Tracker Type.');
     }
+
+    iffy.addToCallQueue(function () {
+        console.log("SETTING TRACKERS ARR AS");
+        console.log(storedTrackersArr);
+        var trackersString = JSON.stringify(storedTrackersArr);
+        console.log(trackersString);
+        Cookies.set('trackers', trackersString);
+    })
     return hasSuccess;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,121 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>The HTML5 Herald</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+
+    <style type="text/css">
+        .hidden {
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <p>This is Test Conditional Content</p>
+
+    <div class="iffy-state-oregon">
+        This should conditionally display for oregon
+    </div>
+
+    <div class="iffy-city-corvallis">
+        This should conditionally display for corvallis
+    </div>
+
+    <div class="iffy-state-oregon">
+        <div class="iffy-city-corvallis">
+            This should conditionally display for oregon AND corvallis
+        </div>
+    </div>
+
+    <div class="iffy-business">
+        <h1> This is an example of a single cookie tracker Business</h1>
+    </div>
+
+    <div class="iffy-business">
+        <h1 class="iffy-engineering"> This is an example of AND boolean logic</h1>
+    </div>
+
+    <div class="iffy-thatUserIsFromState">
+        <h1 class="iffy-engineering"> New user  is from state tracker {{thatUserIsFromState.state}}</h1>
+    </div>
+
+    <div class="iffy-business iffy-engineering">
+        <h1> This is an example of OR boolean logic</h1>
+    </div>
+
+    <script src="./track.js"></script>
+    <script src="./if.js"></script>
+</body>
+
+
+
+
+<script type="text/javascript">
+
+
+    iffy.track({
+        thatUserIsFromState: {
+        state: 'Colorado', // the key we exemplify for this use case, this can be named anything
+        arbitraryKey: 'Test arbitrary key', // add unlimited keys and values for templating 
+        delay: 1440, // set an optional delay in minutes
+        loop: false // @TODO: Just don't delete the cookie and change a key for whether or not the content has been displayed already? 
+        }
+    })
+
+    // // Use Case 1
+    // var couldTrackBusiness = iffy.track('business');
+
+
+    // // Use Case 2
+    // var couldTrackGroupOfThings = iffy.track([
+    //     'trackerOne',
+    //     'trackerTwo',
+    //     'trackerThree'
+    // ]);
+
+    // // Use case 3 
+    // var couldTrackWithDuration = iffy.track({
+    //     trackerFour: 1,
+    //     trackerFive: 2,
+    //     trackerSix: 3,
+    // });
+
+
+    // // Use case 4
+    // iffy.hasGeolocationAccess().then(function (location) {
+    //     console.log("In the call back of the geolocation access");
+    //     console.log("And location is");
+    //     console.log(location);
+
+    //     iffy.isFrom('state', 'Oregon').then(function () {
+    //         console.log("User is from oregon!");
+    //     });
+
+
+    // });
+
+
+    // // iffy.requestGeolocationAccess().then(function(res) {
+    // //   console.log("Success in the callback of requestGeolocationAccess");
+    // // });
+
+
+
+
+    // console.log(couldTrackWithDuration);
+
+
+
+</script>
+
+
+
+</html>
