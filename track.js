@@ -129,6 +129,18 @@ iffy.parseTemplates = function() {
                                     
                                         if (typeof cookie !== 'undefined') {
                                             cookie = JSON.parse(cookie);
+
+                                        // Check the loop and time conditions
+                                        var elapsedTimeSinceSetting = ((new Date()).getTime() - new Date(cookie.created_at).getTime()) / 1000;        
+                                        var meetsTimeCondition = typeof cookie.delay !== 'undefined' && elapsedTimeSinceSetting > cookie.delay;
+                                        var meetsLoopCondition = cookie.loop || !cookie.hasShown;
+
+                                        console.log("Meets time condition");
+                                        console.log("Meets loop condition");
+
+                                        if(meetsTimeCondition && meetsLoopCondition) {
+                                            cookie.hasShown = true;
+                                            Cookies.set(splitClassName[1], JSON.stringify(cookie));
                                             console.log("Actually getting into here:");
                                             console.log(splitClassName[2]);
                                             console.log(cookie[splitClassName[1]]);
@@ -138,6 +150,9 @@ iffy.parseTemplates = function() {
                                             if(cookie.value === splitClassName[2]) {
                                                 jQuery(value).toggleClass('hidden');
                                             }
+                                        }
+
+
                                         }
                                     }
 
