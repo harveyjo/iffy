@@ -124,6 +124,21 @@ iffy.parseTemplates = function() {
                 
                                         iffy.useLocationTag(splitClassName[1], splitClassName[2]);
                                        
+                                    } else {
+                                        var cookie = Cookies.get(splitClassName[1]);
+                                    
+                                        if (typeof cookie !== 'undefined') {
+                                            cookie = JSON.parse(cookie);
+                                            console.log("Actually getting into here:");
+                                            console.log(splitClassName[2]);
+                                            console.log(cookie[splitClassName[1]]);
+                                            console.log("Then in the loop:");    
+                                            console.log(cookie);
+                                            console.log(splitClassName[2]);
+                                            if(cookie.value === splitClassName[2]) {
+                                                jQuery(value).toggleClass('hidden');
+                                            }
+                                        }
                                     }
 
                                 } else if(splitClassName.length === 2) { // iffy-arbitrary
@@ -131,6 +146,10 @@ iffy.parseTemplates = function() {
                                     console.log(iffy.trackers);
 
                                     if (iffy.trackers.includes(splitClassName[1])) {
+                                        // Also make sure that the conditions are met
+
+
+
                                         // Parse the inner html of the template and do a replacement of the tags
                                         
                                         var result = jQuery(value).children().contents()
@@ -175,7 +194,7 @@ iffy.parseTemplates = function() {
 
 
                                     }
-                                }
+                                } 
 
                             // Look for the actual statements
 
@@ -484,7 +503,9 @@ iffy.go = function() {
                 console.log("Retrieved");
                 console.log(storedTrackers);
                 storedTrackers.map(function(tracker) {
-                    iffy.trackers.push(tracker)
+                    if(!iffy.trackers.includes(tracker)) {
+                        iffy.trackers.push(tracker)
+                    }
                 });
             }
 
@@ -542,8 +563,13 @@ iffy.track = function(stringOrStringsToTrack) {
 
     if(typeof stringOrStringsToTrack === 'string') {
         hasSuccess = true;
-        iffy.trackers.push(stringOrStringsToTrack);
-        storedTrackersArr.push(stringOrStringsToTrack);
+
+        if (!iffy.trackers.includes(stringOrStringsToTrack)) {
+            iffy.trackers.push(stringOrStringsToTrack)
+        }
+        if (!storedTrackersArr.includes(stringOrStringsToTrack)) {
+            storedTrackersArr.push(stringOrStringsToTrack);
+        }
 
         console.log("Tracking a string for sure.");
 
@@ -581,7 +607,17 @@ iffy.track = function(stringOrStringsToTrack) {
             storedTrackersArr.push(key);
             console.log(key);
             console.log(storedTrackersArr);
-            iffy.trackers.push(key);
+
+            if(!iffy.trackers.includes(key)) {
+                iffy.trackers.push(key);
+            }
+
+            // Inject at created-at datetime for delays and time-comparisions
+            stringOrStringsToTrack[key].created_at = new Date();
+            stringOrStringsToTrack[key].hasShown = false;
+            stringOrStringsToTrack[key].loop = !stringOrStringsToTrack[key].loop ? false : true;
+
+
             Cookies.set(key, JSON.stringify(stringOrStringsToTrack[key]), { expires: 1800});
         });
     });
@@ -599,3 +635,32 @@ iffy.track = function(stringOrStringsToTrack) {
     })
     return hasSuccess;
 }
+
+
+iffy.hasTracker = function(trackerName, callback) {
+    iffy.waitToRunForJquery(function () {
+        var cookie = Cookies.get(trackerName);
+
+        if(typeof cookie !== 'undefined') {
+            cookie = JSON.parse(cookie);
+            console.log("Parsed Cookie is:");
+            console.log(cookie);
+            // Also make sure that conditions are met
+
+            var elapsedTimeSinceSetting = ((new Date()).getTime() - new Date(cookie.created_at).getTime()) / 1000;        
+
+            console.log("Elapsed Time Since Setting:");
+            console.log(elapsedTimeSinceSetting);
+
+            var meetsTimeCondition = typeof cookie.delay !== 'undefined' && elapsedTimeSinceSetting > cookie.delay;
+            var meetsLoopCondition = cookie.loop || !cookie.hasShown;
+
+            if (meetsTimeCondition && meetsLoopCondition) {
+                cookie.hasShown = true;
+                Cookies.set(trackerName, JSON.stringify(cookie));
+                callback();
+            }
+
+        }
+    });
+};
