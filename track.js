@@ -455,9 +455,9 @@ iffy.hasTracker = function(trackerName, callback) {
             var meetsLoopCondition = cookie.loop || !cookie.hasShown;
             
             if (meetsTimeCondition && meetsLoopCondition) {
+                callback();
                 cookie.hasShown = true;
                 Cookies.set(trackerName, JSON.stringify(cookie));
-                callback();
             }
             
         }
